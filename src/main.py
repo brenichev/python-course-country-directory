@@ -19,7 +19,7 @@ from renderer import Renderer
 )
 async def process_input(location: str) -> None:
     """
-    Поиск и вывод информации о стране, погоде и курсах валют.
+    Поиск и вывод информации о стране, погоде, новостях и курсах валют.
 
     :param str location: Страна и/или город
     """

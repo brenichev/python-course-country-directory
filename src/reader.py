@@ -8,6 +8,7 @@ from typing import Optional
 from collectors.collector import (
     CountryCollector,
     CurrencyRatesCollector,
+    NewsCollector,
     WeatherCollector,
 )
 from collectors.models import (
@@ -15,6 +16,7 @@ from collectors.models import (
     CurrencyInfoDTO,
     LocationDTO,
     LocationInfoDTO,
+    NewsDTO,
     WeatherInfoDTO,
 )
 
@@ -24,7 +26,7 @@ class Reader:
     Чтение сохраненных данных.
     """
 
-    async def find(self, location: str) -> Optional[LocationInfoDTO]:
+    async def find(self, name: str) -> Optional[LocationInfoDTO]:
         """
         Поиск данных о стране по строке.
 
@@ -32,17 +34,20 @@ class Reader:
         :return:
         """
 
-        country = await self.find_country(location)
+        country = await self.find_country(name)
         if country:
-            weather = await self.get_weather(
-                LocationDTO(capital=country.capital, alpha2code=country.alpha2code)
+            location = LocationDTO(
+                capital=country.capital, alpha2code=country.alpha2code
             )
+            weather = await self.get_weather(location)
             currency_rates = await self.get_currency_rates(country.currencies)
+            news = await self.get_news(location)
 
             return LocationInfoDTO(
                 location=country,
                 weather=weather,
                 currency_rates=currency_rates,
+                news=news,
             )
 
         return None
@@ -74,6 +79,22 @@ class Reader:
         :return:
         """
         return await WeatherCollector.read(location=location)
+
+    @staticmethod
+    async def get_news(location: LocationDTO) -> Optional[list[NewsDTO]]:
+        """
+        Получение данных о новостях.
+        :param location: Объект локации для получения данных
+        :return:
+        """
+        news = []
+        for i in range(3):
+            try:
+                news.append(await NewsCollector.read(location=location, number=i))
+            except IndexError:
+                continue
+
+        return news  # type: ignore[return-value]
 
     async def find_country(self, search: str) -> Optional[CountryDTO]:
         """
