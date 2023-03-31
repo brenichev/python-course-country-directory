@@ -1,8 +1,10 @@
 """
 Описание моделей данных (DTO).
 """
+from typing import Optional
 
-from pydantic import Field, BaseModel
+from datetime import datetime
+from pydantic import Field, BaseModel, validator
 
 
 class HashableBaseModel(BaseModel):
@@ -69,6 +71,9 @@ class CountryDTO(BaseModel):
         CountryDTO(
             capital="Mariehamn",
             alpha2code="AX",
+            capital_latitude=19.9348,
+            capital_longitude=60.0973,
+            capital_area=1580.0,
             alt_spellings=[
               "AX",
               "Aaland",
@@ -105,6 +110,9 @@ class CountryDTO(BaseModel):
     name: str
     population: int
     subregion: str
+    capital_latitude: float
+    capital_longitude: float
+    capital_area: Optional[float]
     timezones: list[str]
 
 
@@ -140,6 +148,9 @@ class WeatherInfoDTO(BaseModel):
             humidity=54,
             wind_speed=4.63,
             description="scattered clouds",
+            visibility=10000,
+            timezone=3600,
+            date_time=2023-03-30 12:23:34
         )
     """
 
@@ -148,6 +159,41 @@ class WeatherInfoDTO(BaseModel):
     humidity: int
     wind_speed: float
     description: str
+    visibility: float
+    timezone: int
+    date_time: datetime
+
+
+class NewsDTO(BaseModel):
+    """
+    Модель данных о новости.
+
+    .. code-block::
+
+        NewsDTO(
+               title="Maia Sandu: Republica Moldova este ținta unor atacuri hibride finanțate de Kremlin. i",
+               author="Ion Gaidău",
+               description="Preşedinta Maia Sandu a avertizat că Republica Moldova este ținta unor atacuri hidride",
+               source="Adevarul.ro",
+               url="https://adevarul.ro/stiri-externe/republica-moldova/maia-sandu-republica-moldova-este-tinta-unor-
+               2254533.html"
+               published_at=2023-03-30T12:42:34Z,
+        )
+    """
+
+    title: str
+    author: Optional[str]
+    description: str
+    source: str
+    url: str
+    published_at: datetime
+
+    # pylint: disable=E0213
+    @validator("author")
+    def validate_author(cls, value):  # type: ignore[no-untyped-def]
+        if value is None or value == "":
+            return "unknown"
+        return value
 
 
 class LocationInfoDTO(BaseModel):
@@ -159,6 +205,9 @@ class LocationInfoDTO(BaseModel):
         LocationInfoDTO(
             location=CountryDTO(
                 capital="Mariehamn",
+                capital_latitude=19.9348,
+                capital_longitude=60.0973,
+                capital_area=1580.0,
                 alpha2code="AX",
                 alt_spellings=[
                   "AX",
@@ -191,13 +240,28 @@ class LocationInfoDTO(BaseModel):
                 humidity=54,
                 wind_speed=4.63,
                 description="scattered clouds",
+                visibility=10000,
+                timezone=3600,
+                date_time=2023-03-30 12:23:34
             ),
             currency_rates={
                 "EUR": 0.016503,
             },
+            news=[
+                NewsDTO(
+                   title="Maia Sandu: Republica Moldova este ținta unor atacuri hibride finanțate de Kremlin. i",
+                   author="Ion Gaidău",
+                   description="Preşedinta Maia Sandu a avertizat că Republica Moldova este ținta unor atacuri hidride",
+                   source="Adevarul.ro",
+                   url="https://adevarul.ro/stiri-externe/republica-moldova/maia-sandu-republica-moldova-este-tinta-
+                   unor-2254533.html"
+                   published_at=2023-03-30T12:42:34Z,
+                )
+            ]
         )
     """
 
     location: CountryDTO
     weather: WeatherInfoDTO
     currency_rates: dict[str, float]
+    news: Optional[list[NewsDTO]]
